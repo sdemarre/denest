@@ -4,7 +4,9 @@ is_square(expr):=not atom(expr) and is_power(expr) and args(expr)[2]=2$
 is_sum(expr):=not atom(expr) and is(op(expr)="+")$
 is_single_sqrt(expr):=is_sqrt(expr) and length(args(expr))=1$
 is_product(expr):=not atom(expr) and is(op(expr)="*")$
-is_const_times_sqrt(expr):=is_product(expr) and length(args(expr)) = 2 and atom(args(expr)[1]) and is_sqrt(args(expr)[2])$
+is_neg(expr):=not atom(expr) and is(op(expr)="-")$
+is_const_times_sqrt(expr):=(is_product(expr) and length(args(expr)) = 2 and atom(args(expr)[1]) and is_sqrt(args(expr)[2])) or
+                           (is_neg(expr) and is_const_times_sqrt(arg(expr)[1]))$
   
 /* sqrt(x^2)->x  */
 denest_if_square(expr):=
@@ -20,7 +22,7 @@ extract_const_sqrt(expr):=[args(expr)[1],args(args(expr)[2])[1]]$
 /* if args(expr)[i] is of the form b*sqrt(r) then return [expr-b*sqrt(r),b,r]
 assumes expr is a sum */
 denest_split_sqrt_expr(expr,i):=block([arg_i:args(expr)[i],b,r],
-  if is_product(arg_i) and is_const_mul_sqrt(arg_i) then
+  if is_product(arg_i) and is_const_times_sqrt(arg_i) then
     block([b,r],
       [b,r]:extract_const_sqrt(arg_i),
       [expr - arg_i,b,r]))$
@@ -31,7 +33,7 @@ denest_match_simple(expr):=
   block([a:[],b:[],r:[]],
     if is_sqrt(expr) and is_sum(args(expr)[1]) then
       block([i,sqrt_arg:args(expr)[1]],
-	for i : 1 thru length(sum_expr) do
+	for i : 1 thru length(sqrt_arg) do
            block([s:denest_split_sqrt_expr(sqrt_arg,i)],
 	     if not atom(s) then block([],
 				   a:cons(s[1],a),
