@@ -1,0 +1,23 @@
+(kill(all),load("denest"),0);
+0$
+
+/* denest_if_square */
+
+denest_if_square(x);
+x$
+
+denest_if_square(4);
+4$
+
+denest_if_square(sqrt(x));
+sqrt(x)$
+
+denest_if_square([]);
+[]$
+
+tmp:sqrt(x^2),radexpand:false;
+denest_if_square(tmp);
+x$
+
+denest_if_square(sqrt(1+x^2));
+sqrt(1+x^2)$
