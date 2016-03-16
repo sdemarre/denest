@@ -6,55 +6,64 @@ is_single_sqrt(expr):=is_sqrt(expr) and length(args(expr))=1$
 is_product(expr):=not atom(expr) and is(op(expr)="*")$
 is_neg(expr):=not atom(expr) and is(op(expr)="-")$
 is_const_times_sqrt(expr):=(is_product(expr) and length(args(expr)) = 2 and atom(args(expr)[1]) and is_sqrt(args(expr)[2])) or
-                           (is_neg(expr) and is_const_times_sqrt(arg(expr)[1]))$
-  
+                           (is_neg(expr) and is_const_times_sqrt(args(expr)[1])) or
+                           is_sqrt(expr)$
+
 /* sqrt(x^2)->x  */
 denest_if_square(expr):=
-if is_single_sqrt(expr) and is_square(args(expr)[1])
-then
-  args(args(expr)[1])[1]
-else
-  expr$
-/* expr = b*sqrt(r)->[b,r] 
+	if is_single_sqrt(expr) and is_square(args(expr)[1])
+	then
+	  args(args(expr)[1])[1]
+	else
+	  expr$
+/* expr = b*sqrt(r)->[b,r]
 assumes is_const_times_sqrt(expr)*/
-extract_const_sqrt(expr):=[args(expr)[1],args(args(expr)[2])[1]]$
-  
+extract_const_sqrt(expr):=if is_sqrt(expr) then
+                             [1,args(expr)[1]]
+                          elseif is_neg(expr) then
+                             block([t],
+			           t:extract_const_sqrt(-expr),
+				   [-t[1],t[2]])
+                          else
+                             [args(expr)[1],args(args(expr)[2])[1]]$
+
 /* if args(expr)[i] is of the form b*sqrt(r) then return [expr-b*sqrt(r),b,r]
 assumes expr is a sum */
 denest_split_sqrt_expr(expr,i):=block([arg_i:args(expr)[i],b,r],
-  if is_product(arg_i) and is_const_times_sqrt(arg_i) then
+  if is_const_times_sqrt(arg_i) then
     block([b,r],
       [b,r]:extract_const_sqrt(arg_i),
       [expr - arg_i,b,r]))$
-				  
-    
-/* returns all possible sqrt(a+b*sqrt(r)) decompositions of expr */
+
+
+/* returns all possible sqrt(a+b*sqrt(r)) decompositions of expr as
+   a list of lists [a,b,r] */
 denest_match_simple(expr):=
   block([a:[],b:[],r:[]],
     if is_sqrt(expr) and is_sum(args(expr)[1]) then
       block([i,sqrt_arg:args(expr)[1]],
-	for i : 1 thru length(sqrt_arg) do
+        for i : 1 thru length(sqrt_arg) do
            block([s:denest_split_sqrt_expr(sqrt_arg,i)],
-	     if not atom(s) then block([],
-				   a:cons(s[1],a),
-				   b:cons(s[2],b),
-				   r:cons(s[3],r))))
-					     
+             if not atom(s) then block([],
+                                   a:cons(s[1],a),
+                                   b:cons(s[2],b),
+                                   r:cons(s[3],r))))
+
     else
       expr,
     [a,b,r])$
-	    
-	
+
+
 denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED],
        m:length(nested_exprs),
        if depth = 1 then return(map(denest_if_square,nested_exprs))
        else
        block([a,b,r],
-	     [a,b,r] = denest_match_simple_all(nested_exprs),
-	     if all_list_elements_equal(r) then
-	     	block([],
-		N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))
-	     else
-	        DENESTED:nested_exprs
+             [a,b,r] = denest_match_simple_all(nested_exprs),
+             if all_list_elements_equal(r) then
+                     block([],
+                N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))
+             else
+                DENESTED:nested_exprs
        ),
-       DENESTED);
+       DENESTED)$
