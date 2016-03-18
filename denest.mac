@@ -21,9 +21,7 @@ assumes is_const_times_sqrt(expr)*/
 extract_const_sqrt(expr):=if is_sqrt(expr) then
                              [1,args(expr)[1]]
                           elseif is_neg(expr) then
-                             block([t],
-			           t:extract_const_sqrt(-expr),
-				   [-t[1],t[2]])
+			     [[-1,0],[0,1]].extract_const_sqrt(-expr)
                           else
                              [args(expr)[1],args(args(expr)[2])[1]]$
 
@@ -53,13 +51,20 @@ denest_match_simple(expr):=
       expr,
     [a,b,r])$
 
+denest_match_simple_all(exprs):=map(denest_match_simple, exprs);
+
+compute_sqrt_nesting_level(expr):=if atom(expr) then 0
+                          else
+			  (if is_sqrt(expr) then 1 else 0) + lreduce(max, map(compute_sqrt_nesting_level,args(expr)));
+
+maybe_denestable_decompositions(exprs):=0;
 
 denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED],
        m:length(nested_exprs),
        if depth = 1 then return(map(denest_if_square,nested_exprs))
        else
-       block([a,b,r],
-             [a,b,r] = denest_match_simple_all(nested_exprs),
+       block([a,b,r,denestable_decomps:maybe_denestable_decompositions(exprs)],
+             if length(denestable_decomps_
              if all_list_elements_equal(r) then
                      block([],
                 N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))
