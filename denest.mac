@@ -35,40 +35,42 @@ denest_split_sqrt_expr(expr,i):=block([arg_i:args(expr)[i],b,r],
 
 
 /* returns all possible sqrt(a+b*sqrt(r)) decompositions of expr as
-   a list of lists [a,b,r] */
-denest_match_simple(expr):=
-  block([a:[],b:[],r:[]],
+   a list of [a,b,r] */
+find_apbsr_decompositions(expr):=
+  block([result:[]],
     if is_sqrt(expr) and is_sum(args(expr)[1]) then
       block([i,sqrt_arg:args(expr)[1]],
         for i : 1 thru length(sqrt_arg) do
            block([s:denest_split_sqrt_expr(sqrt_arg,i)],
-             if not atom(s) then block([],
-                                   a:cons(s[1],a),
-                                   b:cons(s[2],b),
-                                   r:cons(s[3],r))))
-
-    else
-      expr,
-    [a,b,r])$
-
-denest_match_simple_all(exprs):=map(denest_match_simple, exprs);
+             if not atom(s) then result:cons(s,result))),
+    result)$
 
 compute_sqrt_nesting_level(expr):=if atom(expr) then 0
                           else
-			  (if is_sqrt(expr) then 1 else 0) + lreduce(max, map(compute_sqrt_nesting_level,args(expr)));
+                          (if is_sqrt(expr) then 1 else 0) + apply(max, map(compute_sqrt_nesting_level,args(expr)))$
+
+sets_from_lists(lists):=map(setify,lists)$
+get_r_from_decomposition(decomp):=decomp[3]$
+get_rs_from_decompositions(decomps):=map(get_r_from_decomposition, decomps)$
+select_decomps_with_r(r, decomposed_sqrt_lists):=map(select_decomp_with_r(r), decomposed_sqrt_lists);
+/* given a list of (list of apbsr decompositions), returns all possible selections with identical r for all decompositions (if any) */
+find_denestable_combinations(decomposed_sqrt_lists):=block([possible_rs,possible_rs_for_components],
+  possible_rs_for_components:map(get_rs_from_decompositions, decomposed_sqrt_lists),
+  possible_rs:apply(intersection, sets_from_lists(possible_rs_for_components)),
+  map(lambda([r],select_decomps_with_r(r, decomposed_sqrt_lists)),possible_rs))$
 
 maybe_denestable_decompositions(exprs):=0;
 
-denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED],
-       m:length(nested_exprs),
-       if depth = 1 then return(map(denest_if_square,nested_exprs))
-       else
-       block([a,b,r,denestable_decomps:maybe_denestable_decompositions(exprs)],
-             if length(denestable_decomps_
-             if all_list_elements_equal(r) then
-                     block([],
-                N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))
-             else
-                DENESTED:nested_exprs
-       ),
-       DENESTED)$
+/*denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED],*/
+/*       m:length(nested_exprs),*/
+/*       if depth = 1 then return(map(denest_if_square,nested_exprs))*/
+/*       else*/
+/*       block([a,b,r,denestable_decomps:maybe_denestable_decompositions(exprs)],*/
+/*             if length(denestable_decomps_*/
+/*             if all_list_elements_equal(r) then*/
+/*                     block([],*/
+/*                N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))*/
+/*             else*/
+/*                DENESTED:nested_exprs*/
+/*       ),*/
+/*       DENESTED)$*/

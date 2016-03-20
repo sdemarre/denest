@@ -73,7 +73,7 @@ true$
 is_const_times_sqrt(-sqrt(3)*sqrt(b));
 true$
 
-section_2_example:sqrt(16 - 2*sqrt(29) + 2*sqrt(55-10*sqrt(29)))$
+s2e:sqrt(16 - 2*sqrt(29) + 2*sqrt(55-10*sqrt(29)))$
 
-section_6_example:sqrt(sqrt(112+70*sqrt(2))+(46+34*sqrt(2))*sqrt(5));
+s6e:sqrt(sqrt(112+70*sqrt(2))+(46+34*sqrt(2))*sqrt(5));
 
