@@ -49,10 +49,17 @@ compute_sqrt_nesting_level(expr):=if atom(expr) then 0
                           else
                           (if is_sqrt(expr) then 1 else 0) + apply(max, map(compute_sqrt_nesting_level,args(expr)))$
 
+position_if(predfun, list,[startpos]):=
+  block([s:if is(length(startpos) = 0) then 1 else startpos[1]],
+    if predfun(first(list)) then s else position_if(predfun, rest(list), 1+s))$
+
 sets_from_lists(lists):=map(setify,lists)$
 get_r_from_decomposition(decomp):=decomp[3]$
 get_rs_from_decompositions(decomps):=map(get_r_from_decomposition, decomps)$
-select_decomps_with_r(r, decomposed_sqrt_lists):=map(select_decomp_with_r(r), decomposed_sqrt_lists);
+make_r_decomp_selector(r):=lambda([decomps],
+  block([r_pos:find_if(lambda([decomp],is(decomp[3]=r)), decomps)],
+    decomps[r]))$
+select_decomps_with_r(r, decomposed_sqrt_lists):=map(make_r_decomp_selector(r), decomposed_sqrt_lists);
 /* given a list of (list of apbsr decompositions), returns all possible selections with identical r for all decompositions (if any) */
 find_denestable_combinations(decomposed_sqrt_lists):=block([possible_rs,possible_rs_for_components],
   possible_rs_for_components:map(get_rs_from_decompositions, decomposed_sqrt_lists),
