@@ -57,27 +57,24 @@ sets_from_lists(lists):=map(setify,lists)$
 get_r_from_decomposition(decomp):=decomp[3]$
 get_rs_from_decompositions(decomps):=map(get_r_from_decomposition, decomps)$
 make_r_decomp_selector(r):=lambda([decomps],
-  block([r_pos:find_if(lambda([decomp],is(decomp[3]=r)), decomps)],
-    decomps[r]))$
+  block([r_pos:position_if(lambda([decomp],is(decomp[3]=r)), decomps)],
+    decomps[r_pos]))$
 select_decomps_with_r(r, decomposed_sqrt_lists):=map(make_r_decomp_selector(r), decomposed_sqrt_lists);
 /* given a list of (list of apbsr decompositions), returns all possible selections with identical r for all decompositions (if any) */
 find_denestable_combinations(decomposed_sqrt_lists):=block([possible_rs,possible_rs_for_components],
   possible_rs_for_components:map(get_rs_from_decompositions, decomposed_sqrt_lists),
   possible_rs:apply(intersection, sets_from_lists(possible_rs_for_components)),
-  map(lambda([r],select_decomps_with_r(r, decomposed_sqrt_lists)),possible_rs))$
+  map(lambda([r],select_decomps_with_r(r, decomposed_sqrt_lists)),listify(possible_rs)))$
 
-maybe_denestable_decompositions(exprs):=0;
+compute_Ns(denestable_combinations, idx):=
+  append(map(lambda([apbsrs],sqrt(apbsrs[idx][1]^2 - apbsrs[idx][2]^2*apbsrs[idx][3])), denestable_combinations),[sqrt(denestable_combinations[1][idx][3])]);
 
-/*denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED],*/
-/*       m:length(nested_exprs),*/
-/*       if depth = 1 then return(map(denest_if_square,nested_exprs))*/
-/*       else*/
-/*       block([a,b,r,denestable_decomps:maybe_denestable_decompositions(exprs)],*/
-/*             if length(denestable_decomps_*/
-/*             if all_list_elements_equal(r) then*/
-/*                     block([],*/
-/*                N:makelist(sqrt(a[i]^2-b[i]^2*r[1]),i,1,m))*/
-/*             else*/
-/*                DENESTED:nested_exprs*/
-/*       ),*/
-/*       DENESTED)$*/
+
+/* denest(depth,nested_exprs):=block([m,n,N,d,s,DENESTED], */
+/*       m:length(nested_exprs), */
+/*       if depth = 1 then */
+/*         return(map(denest_if_square,nested_exprs)) */
+/*       else block([], */
+/*         N:compute_Ns(find_denestable_combinations(map(find_apbsr_decompositions, nested_exprs))) */
+/*         ), */
+/*       DENESTED)$ */
